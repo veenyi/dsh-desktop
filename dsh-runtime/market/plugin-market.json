@@ -1,0 +1,56 @@
+[
+  {
+    "id": "channel-dingtalk",
+    "name": "钉钉 IM 渠道",
+    "description": "接入钉钉机器人，IM 中直接对话推进任务（需配置 AppKey/Secret）",
+    "version": "1.0.0",
+    "author": "DSH",
+    "builtin": true
+  },
+  {
+    "id": "channel-feishu",
+    "name": "飞书 IM 渠道",
+    "description": "飞书机器人长连接接入，双向对话（需 App ID/Secret）",
+    "version": "1.0.0",
+    "author": "DSH",
+    "builtin": true
+  },
+  {
+    "id": "channel-discord",
+    "name": "Discord IM 渠道",
+    "description": "Discord Bot 接入，频道/私信双向对话（需 Bot Token）",
+    "version": "1.0.0",
+    "author": "DSH",
+    "builtin": true
+  },
+  {
+    "id": "channel-wecom",
+    "name": "企业微信 IM 渠道",
+    "description": "群机器人推送 + 可选回调入站（需 Webhook Key）",
+    "version": "1.0.0",
+    "author": "DSH",
+    "builtin": true
+  },
+  {
+    "id": "channel-qq",
+    "name": "QQ 机器人 IM 渠道",
+    "description": "QQ 官方机器人接入，群/私聊双向对话（需 AppID/Token）",
+    "version": "1.0.0",
+    "author": "DSH",
+    "builtin": true
+  },
+  {
+    "id": "mcp-client",
+    "name": "MCP 客户端",
+    "description": "连接外部 MCP 服务器，扩展工具生态",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "workflow",
+    "name": "工作流引擎",
+    "description": "可视化 DAG 工作流编排与自动执行",
+    "version": "1.0.0",
+    "author": "DSH"
+  }
+]
