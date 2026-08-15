@@ -1,0 +1,135 @@
+[
+  {
+    "id": "web-search",
+    "name": "网页搜索",
+    "description": "联网搜索最新信息并汇总要点，适合时效性查询",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "web-fetch",
+    "name": "网页抓取",
+    "description": "抓取指定网页内容并提炼核心信息",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "file-ops",
+    "name": "文件操作",
+    "description": "读写本地文件、批量整理目录、格式转换",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "goal-driver",
+    "name": "目标驱动",
+    "description": "/goal 长任务多轮自动推进，每轮结束校验",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "subagent",
+    "name": "子智能体",
+    "description": "general-purpose / Explore 子智能体协作",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "doc-process",
+    "name": "文档处理",
+    "description": "阅读与生成 Word/PDF/Markdown，总结、润色、改写",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "data-analysis",
+    "name": "数据分析",
+    "description": "处理 Excel/CSV，统计汇总、透视、可视化建议",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "slide-deck",
+    "name": "幻灯片生成",
+    "description": "从内容大纲生成结构化 PPT 方案与逐页文案",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "screen-capture",
+    "name": "屏幕分析",
+    "description": "读取截图/图片内容，识别界面元素与问题",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "email-draft",
+    "name": "邮件起草",
+    "description": "根据要点生成正式商务邮件，含主题与称呼落款",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "code-review",
+    "name": "代码审查",
+    "description": "审查代码改动：风格、逻辑、安全、性能问题",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "competitor-analysis",
+    "name": "竞品分析",
+    "description": "拆解竞品功能/定价/优劣，输出对比结论",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "schedule-planning",
+    "name": "日程规划",
+    "description": "把待办事项整理成时间表，排出优先级",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "weekly-report",
+    "name": "周报生成",
+    "description": "汇总一周工作产出，输出结构化周报",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "meeting-minutes",
+    "name": "会议纪要",
+    "description": "从会议记录/录音转写提取决议、待办与风险",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "translate-polish",
+    "name": "翻译润色",
+    "description": "中英互译与文本润色，保持语气与术语一致",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "browser-automation",
+    "name": "浏览器自动化",
+    "description": "用内置浏览器+屏幕快照完成网页操作与信息采集",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "schedule-tasks",
+    "name": "定时任务编排",
+    "description": "用自然语言描述周期任务，编排 /schedule 自动执行",
+    "version": "1.0.0",
+    "author": "DSH"
+  },
+  {
+    "id": "im-ops",
+    "name": "IM 群助手运营",
+    "description": "在 IM 渠道（钉钉/飞书/企微等）回复消息、推送通知",
+    "version": "1.0.0",
+    "author": "DSH"
+  }
+]
