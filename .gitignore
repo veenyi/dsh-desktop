@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+dsh-runtime/node_modules/
+
+# build artifacts
+release/
+dist/
+out/
+dsh-runtime/dsh-node_modules.zip
+dsh-runtime/node.exe
+dsh-runtime/testdata/
+
+# logs & scratch
+*.log
+electron-test.log
+test-open*.cjs
+
+# dev screenshots (root-level only)
+/screen*.png
+/desktop-*.png
+/tray-*.png
+/exe-icon-*.png
+
+# local env
+.env
+desktop-settings.json
+update.json
+
+# OS
+.DS_Store
+Thumbs.db
