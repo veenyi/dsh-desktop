@@ -972,7 +972,7 @@ function openSettings() {
       : path.join(__dirname, '..', 'build', 'icon.ico'),
     autoHideMenuBar: true,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'shell-preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
