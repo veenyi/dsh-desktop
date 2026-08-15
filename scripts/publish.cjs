@@ -150,6 +150,10 @@ async function main() {
   fs.writeFileSync(latestPath, JSON.stringify(latest, null, 2), 'utf8');
   console.log('latest.json written: ' + latestPath);
 
+  // 发布说明正文：追加 sha256 供客户端从 API 直接校验（无需下载 latest.json）
+  const defaultNotes = `DSH Desktop v${VERSION} 发布。\n\n安装：下载 dsh-desktop-${VERSION}-setup.exe 运行即可；已安装用户可在 设置 → 更新中心 一键更新。`;
+  const releaseBody = (latest.notes || defaultNotes) + `\n\nsha256: ${sha}`;
+
   if (!DO_UPLOAD) {
     console.log('[--no-upload] 跳过上传，仅生成本地 latest.json');
     return;
@@ -170,7 +174,7 @@ async function main() {
     release = (Array.isArray(list) ? list : []).find((r) => r.tag_name === TAG);
   } catch (e) { console.log('  (list releases: ' + e.message + ')'); }
 
-  const notes = latest.notes || `DSH Desktop v${VERSION} 发布。\n\n安装：下载 dsh-desktop-${VERSION}-setup.exe 运行即可；已安装用户可在 设置 → 更新中心 一键更新。`;
+  const notes = releaseBody;
   if (release) {
     release = await ghRequest('PATCH', `https://api.github.com/repos/${owner}/${repo}/releases/${release.id}`, {
       token, headers: { 'Content-Type': 'application/json' },
