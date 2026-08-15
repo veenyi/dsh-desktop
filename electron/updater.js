@@ -108,12 +108,17 @@ function ghGet(url) {
       res.on('data', (c) => { body += c; if (body.length > 8 * 1024 * 1024) req.destroy(new Error('response too large')); });
       res.on('end', () => {
         if (res.statusCode !== 200) return reject(new Error('HTTP ' + res.statusCode));
-        try { resolve(JSON.parse(body)); } catch (e) { reject(e); }
+        try { resolve(parseJson(body)); } catch (e) { reject(e); }
       });
     });
     req.on('error', reject);
     req.on('timeout', () => { req.destroy(new Error('timeout')); });
   });
+}
+
+/** 宽松 JSON 解析：容忍 UTF-8 BOM 与首尾空白（部分工具生成的 latest.json 带 BOM） */
+function parseJson(text) {
+  return JSON.parse(String(text || '').replace(/^\uFEFF/, '').trim());
 }
 
 /** 原始字节 GET（用于资产直取：Accept: application/octet-stream，可跟随重定向） */
@@ -159,7 +164,7 @@ async function checkForUpdates(currentVersion) {
     if (metaAsset) {
       try {
         const raw = await ghGetRaw(metaAsset.url);
-        const meta = JSON.parse(raw);
+        const meta = parseJson(raw);
         if (meta && meta.version && meta.installer && meta.installer.sha256) {
           sha256 = String(meta.installer.sha256);
           if (meta.version && compareVersions(meta.version, tag) !== 0) log(`latest.json version mismatch (${meta.version} vs ${tag})`);
