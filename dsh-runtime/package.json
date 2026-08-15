@@ -1,0 +1,11 @@
+{
+  "name": "dsh-runtime",
+  "version": "0.1.17",
+  "private": true,
+  "dependencies": {
+    "@deepseek-ai/dsh": "0.1.0-rc.6",
+    "@img/sharp-win32-x64": "^0.35.3",
+    "dingtalk-stream": "2.1.6-beta.1",
+    "sharp": "^0.35.3"
+  }
+}
