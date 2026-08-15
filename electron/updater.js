@@ -116,6 +116,33 @@ function ghGet(url) {
   });
 }
 
+/** 原始字节 GET（用于资产直取：Accept: application/octet-stream，可跟随重定向） */
+function ghGetRaw(url) {
+  return new Promise((resolve, reject) => {
+    const doGet = (u, redirects) => {
+      const req = https.get(u, {
+        headers: { 'User-Agent': GH_UA, Accept: 'application/octet-stream' },
+        timeout: 30000
+      }, (res) => {
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirects > 0) {
+          res.resume();
+          return doGet(res.headers.location, redirects - 1);
+        }
+        if (res.statusCode !== 200) {
+          res.resume();
+          return reject(new Error('HTTP ' + res.statusCode));
+        }
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+      });
+      req.on('error', reject);
+      req.on('timeout', () => { req.destroy(new Error('timeout')); });
+    };
+    doGet(url, 5);
+  });
+}
+
 /** 检查更新。currentVersion 由调用方传入（app.getVersion()）。 */
 async function checkForUpdates(currentVersion) {
   const src = readSource();
@@ -128,18 +155,21 @@ async function checkForUpdates(currentVersion) {
     const metaAsset = assets.find((a) => /^latest\.json$/i.test(a.name));
 
     let sha256 = '';
+    // 1) 优先 latest.json 资产直取（API octet-stream；受限网络可能走 CDN 失败）
     if (metaAsset) {
       try {
-        const meta = await ghGet(metaAsset.url); // API asset URL 返回资产对象，取 browser_download_url
-        const url = meta.browser_download_url;
-        if (url) {
-          const raw = await ghGet(url);
-          if (raw && raw.version && raw.installer && raw.installer.sha256) {
-            sha256 = String(raw.installer.sha256);
-            if (raw.version && compareVersions(raw.version, tag) !== 0) log(`latest.json version mismatch (${raw.version} vs ${tag})`);
-          }
+        const raw = await ghGetRaw(metaAsset.url);
+        const meta = JSON.parse(raw);
+        if (meta && meta.version && meta.installer && meta.installer.sha256) {
+          sha256 = String(meta.installer.sha256);
+          if (meta.version && compareVersions(meta.version, tag) !== 0) log(`latest.json version mismatch (${meta.version} vs ${tag})`);
         }
       } catch (e) { log('latest.json fetch failed: ' + e.message); }
+    }
+    // 2) 兜底：从 release 正文提取 sha256（发布脚本写入，走 api.github.com 无需 CDN）
+    if (!sha256 && /sha256[=:\s]*[0-9a-f]{64}/i.test(notes)) {
+      const m = notes.match(/sha256[=:\s]*([0-9a-f]{64})/i);
+      if (m) sha256 = m[1].toLowerCase();
     }
 
     const latest = tag || (installer ? installer.name.replace(/^dsh-desktop-/, '').replace(/-setup\.exe$/i, '') : '');
@@ -152,6 +182,7 @@ async function checkForUpdates(currentVersion) {
       notes: notes || '（发布说明见 GitHub Release）',
       source: `https://github.com/${src.owner}/${src.repo}/releases/latest`,
       downloadUrl: installer ? installer.browser_download_url : '',
+      assetApiUrl: installer ? installer.url : '', // API 资产直取地址（octet-stream）
       size: installer ? installer.size : 0,
       sha256,
       publishedAt: rel.published_at || '',
@@ -218,15 +249,29 @@ function sha256File(file) {
  * @returns {{ok:boolean,message:string,quit?:boolean}}
  */
 async function downloadAndInstall(info, onProgress) {
-  if (!info || !info.hasUpdate || !info.downloadUrl) {
+  if (!info || !info.hasUpdate || !(info.downloadUrl || info.assetApiUrl)) {
     return { ok: false, message: '没有可安装的更新' };
   }
   try {
     fs.mkdirSync(UPDATE_DIR, { recursive: true });
-    const name = path.basename(new URL(info.downloadUrl).pathname) || `dsh-desktop-${info.latest}-setup.exe`;
+    const name = `dsh-desktop-${info.latest}-setup.exe`;
     const dest = path.join(UPDATE_DIR, name);
-    log(`downloading ${info.latest} -> ${dest}`);
-    await downloadFile(info.downloadUrl, dest, onProgress);
+    // 优先走 API 资产直取（octet-stream，无 CDN 重定向）；失败回退浏览器下载地址
+    const urls = [info.assetApiUrl, info.downloadUrl].filter(Boolean);
+    let lastErr = null;
+    for (const url of urls) {
+      try {
+        log(`downloading ${info.latest} from ${url.includes('api.github.com') ? 'api asset' : 'browser url'}`);
+        await downloadFile(url, dest, onProgress);
+        lastErr = null;
+        break;
+      } catch (e) {
+        lastErr = e;
+        log(`download attempt failed: ${e.message}`);
+        try { fs.rmSync(dest, { force: true }); } catch (_) {}
+      }
+    }
+    if (lastErr) throw lastErr;
     if (info.sha256) {
       const actual = await sha256File(dest);
       if (actual.toLowerCase() !== info.sha256.toLowerCase()) {
@@ -239,7 +284,7 @@ async function downloadAndInstall(info, onProgress) {
     return { ok: true, message: '下载完成，正在安装…', installer: dest, quit: true };
   } catch (e) {
     log('download/install error: ' + e.message);
-    try { fs.rmSync(path.join(UPDATE_DIR, path.basename(info.downloadUrl)), { force: true }); } catch (_) {}
+    try { fs.rmSync(path.join(UPDATE_DIR, `dsh-desktop-${info.latest}-setup.exe`), { force: true }); } catch (_) {}
     return { ok: false, message: '更新失败：' + e.message };
   }
 }
