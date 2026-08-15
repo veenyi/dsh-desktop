@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>DSH Desktop 设置</title>
+<style>
+  :root { --accent:#4D6BFE; --accent-soft:#eef1ff; --bg:#f5f6f8; --card:#fff; --border:#e5e7eb; --text:#1f2328; --sub:#656d76; --ok:#2da44e; --warn:#bf8700; --err:#d1242f; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Segoe UI","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; }
+  header { display:flex; align-items:center; gap:10px; padding:14px 20px; background:#fff; border-bottom:1px solid var(--border); }
+  header h1 { font-size:16px; font-weight:600; flex:1; }
+  .ver { font-size:12px; color:var(--sub); }
+  main { flex:1; overflow-y:auto; padding:18px 22px; }
+  .sec { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:14px; }
+  .sec h3 { font-size:14px; font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+  .sec .desc { font-size:12px; color:var(--sub); margin-bottom:12px; }
+  .row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-top:1px solid #f0f1f3; }
+  .row:first-of-type { border-top:none; }
+  .row .lab { font-size:13px; }
+  .row .lab small { display:block; color:var(--sub); font-size:11px; }
+  .switch { position:relative; width:42px; height:24px; flex-shrink:0; }
+  .switch input { opacity:0; width:0; height:0; }
+  .slider { position:absolute; inset:0; background:#d0d3d9; border-radius:999px; transition:.2s; cursor:pointer; }
+  .slider:before { content:""; position:absolute; width:18px; height:18px; border-radius:50%; background:#fff; top:3px; left:3px; transition:.2s; }
+  .switch input:checked + .slider { background:var(--accent); }
+  .switch input:checked + .slider:before { transform:translateX(18px); }
+  .kv { font-size:12px; color:var(--sub); line-height:1.9; }
+  .kv b { color:var(--text); font-weight:600; }
+  .btn { display:inline-block; border:1px solid var(--accent); color:var(--accent); background:transparent; border-radius:8px; padding:6px 14px; font-size:12px; cursor:pointer; margin-top:8px; }
+  .btn:hover { background:var(--accent-soft); }
+  .btn.primary { background:var(--accent); color:#fff; border:none; }
+  .btn.primary:hover { background:#3E5AE6; }
+  .btn.danger { border-color:var(--err); color:var(--err); }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  /* 渠道卡片 */
+  .ch { border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+  .ch .head { display:flex; align-items:center; gap:8px; }
+  .ch .head .nm { font-size:13px; font-weight:600; flex:1; }
+  .ch .head .st { font-size:11px; padding:2px 8px; border-radius:999px; }
+  .ch .head .st.on { background:#e6f4ea; color:var(--ok); }
+  .ch .head .st.part { background:#fef7e0; color:var(--warn); }
+  .ch .head .st.off { background:#f0f1f3; color:var(--sub); }
+  .ch .head .chev { border:none; background:transparent; color:var(--sub); cursor:pointer; font-size:13px; padding:2px 6px; }
+  .ch .body { display:none; margin-top:10px; }
+  .ch.open .body { display:block; }
+  .ch .desc { font-size:11px; color:var(--sub); margin-top:2px; }
+  .ch .fld { display:flex; align-items:center; gap:8px; margin-top:8px; }
+  .ch .fld label { font-size:12px; color:var(--sub); width:150px; flex-shrink:0; }
+  .ch .fld input { flex:1; border:1px solid var(--border); border-radius:7px; padding:6px 10px; font-size:12px; }
+  .ch .fld .set { font-size:11px; color:var(--ok); width:70px; text-align:right; }
+  /* 更新中心 */
+  .up-row { display:flex; align-items:center; gap:8px; margin-top:8px; }
+  .up-row label { font-size:12px; color:var(--sub); }
+  .up-row input { flex:1; border:1px solid var(--border); border-radius:7px; padding:6px 10px; font-size:12px; max-width:200px; }
+  .notes { background:#f7f8fa; border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.7; margin-top:10px; white-space:pre-wrap; max-height:220px; overflow-y:auto; color:var(--sub); }
+  .notes b { color:var(--text); }
+  .progress { height:6px; background:#eaeef2; border-radius:3px; overflow:hidden; margin-top:10px; display:none; }
+  .progress i { display:block; height:100%; width:0%; background:var(--accent); transition:width .2s; }
+  .prog-label { font-size:11px; color:var(--sub); margin-top:6px; display:none; }
+  .badge-up { display:inline-block; background:var(--accent); color:#fff; font-size:11px; padding:2px 10px; border-radius:999px; }
+  footer { padding:12px 20px; background:#fff; border-top:1px solid var(--border); font-size:12px; color:var(--sub); }
+</style>
+</head>
+<body>
+<header>
+  <h1>DSH Desktop 设置</h1>
+  <span class="ver" id="ver">v-</span>
+</header>
+<main>
+  <div class="sec">
+    <h3>通用</h3>
+    <div class="desc">启动与集成行为</div>
+    <div class="row">
+      <span class="lab">开机自动启动<small>登录 Windows 后自动运行 DSH Desktop</small></span>
+      <label class="switch"><input type="checkbox" id="autoLaunch"><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <span class="lab">右键"用 DSH Desktop 打开"<small>资源管理器文件右键菜单增加入口</small></span>
+      <label class="switch"><input type="checkbox" id="openWith"><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <span class="lab">全局快捷键 Ctrl+Alt+D<small>任意窗口下显示/隐藏 DSH Desktop</small></span>
+      <label class="switch"><input type="checkbox" id="hotkey"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h3>IM 渠道</h3>
+    <div class="desc">配置机器人凭据后重启应用生效。凭据只保存在本机 ~/.dsh/.env，不会上传。</div>
+    <div id="channels"><div style="font-size:12px;color:var(--sub);">加载中…</div></div>
+  </div>
+
+  <div class="sec">
+    <h3>更新中心 <span class="badge-up" id="upBadge" style="display:none;"></span></h3>
+    <div class="desc">从 GitHub Releases 检查并安装新版本（默认源 veenyi/dsh-desktop，可修改）</div>
+    <div class="up-row">
+      <label>更新源</label>
+      <input id="srcOwner" placeholder="owner" value="veenyi">
+      <span style="color:var(--sub);">/</span>
+      <input id="srcRepo" placeholder="repo" value="dsh-desktop">
+      <button class="btn" id="saveSource">保存更新源</button>
+    </div>
+    <div class="up-row">
+      <button class="btn primary" id="checkUpdate">检查更新</button>
+      <button class="btn" id="openUpDir" style="display:none;">打开更新目录</button>
+      <span id="upSummary" style="font-size:12px;color:var(--sub);"></span>
+    </div>
+    <div class="progress" id="upProgress"><i></i></div>
+    <div class="prog-label" id="progLabel"></div>
+    <div class="notes" id="upNotes" style="display:none;"></div>
+  </div>
+
+  <div class="sec">
+    <h3>路径信息</h3>
+    <div class="desc">数据全部在用户主目录下（类 ~/.workbuddy 约定）</div>
+    <div class="kv" id="paths"></div>
+  </div>
+</main>
+<footer>DSH Desktop · 本地优先 · 数据只留在你的电脑 · 凭据脱敏存储</footer>
+<script>
+  const $ = (s) => document.querySelector(s);
+  let updateState = null;
+
+  function toast(msg) {
+    // 轻量提示：设置窗口内直接弹 alert 语义更清晰，这里用状态行代替
+    alert(msg);
+  }
+
+  function fmtSize(n) {
+    if (!n) return '';
+    if (n > 1048576) return (n / 1048576).toFixed(1) + ' MB';
+    if (n > 1024) return (n / 1024).toFixed(0) + ' KB';
+    return n + ' B';
+  }
+
+  function renderChannels(chs) {
+    const box = $('#channels');
+    box.innerHTML = '';
+    if (!chs || !chs.length) { box.innerHTML = '<div style="font-size:12px;color:var(--sub);">无渠道</div>'; return; }
+    for (const ch of chs) {
+      const card = document.createElement('div');
+      card.className = 'ch' + (ch.configured ? ' open' : '');
+      const stCls = ch.enabled ? 'on' : (ch.configured ? 'part' : 'off');
+      const stTxt = ch.enabled ? '已启用' : (ch.configured ? '部分配置' : '未配置');
+      const flds = ch.fields.map((f) => `
+        <div class="fld">
+          <label title="${f.env}">${f.label}</label>
+          <input type="${f.secret ? 'password' : 'text'}" id="${ch.id}-${f.env}" placeholder="${f.set ? '（已配置，留空保持不变）' : '未配置'}" autocomplete="off">
+          <span class="set">${f.set ? '✓' : ''}</span>
+        </div>`).join('');
+      card.innerHTML = `
+        <div class="head">
+          <span class="nm">${ch.name}</span>
+          <span class="st ${stCls}">${stTxt}</span>
+          <button class="chev" title="展开/收起">▾</button>
+        </div>
+        <div class="desc">${ch.desc}</div>
+        <div class="body">
+          ${flds}
+          <button class="btn primary" data-act="save">保存凭据</button>
+          <button class="btn danger" data-act="clear" ${ch.configured ? '' : 'disabled'}>清除凭据</button>
+        </div>`;
+      card.querySelector('.chev').addEventListener('click', () => card.classList.toggle('open'));
+      card.querySelector('[data-act="save"]').addEventListener('click', async () => {
+        const values = {};
+        ch.fields.forEach((f) => {
+          const el = document.getElementById(ch.id + '-' + f.env);
+          if (el && el.value.trim()) values[f.env] = el.value.trim();
+        });
+        const r = await window.settings.saveChannel(ch.id, values);
+        toast(r.message);
+        if (r.ok) renderChannels(await window.settings.getChannels());
+      });
+      card.querySelector('[data-act="clear"]').addEventListener('click', async () => {
+        if (!confirm('确定清除「' + ch.name + '」的凭据？')) return;
+        const r = await window.settings.clearChannel(ch.id);
+        toast(r.message);
+        if (r.ok) renderChannels(await window.settings.getChannels());
+      });
+      box.appendChild(card);
+    }
+  }
+
+  function renderUpdate(st) {
+    updateState = st;
+    if (!st) return;
+    const info = st.info;
+    const summary = $('#upSummary');
+    const notes = $('#upNotes');
+    const badge = $('#upBadge');
+    const prog = $('#upProgress');
+    const label = $('#progLabel');
+    const pct = st.progress ? Math.round((st.progress.percent || 0) * 100) : 0;
+    if (st.status === 'checking') { summary.textContent = '正在检查更新…'; prog.style.display = 'none'; label.style.display = 'none'; notes.style.display = 'none'; }
+    else if (st.status === 'downloading') {
+      summary.textContent = '正在下载 v' + (info ? info.latest : '') + ' … ' + pct + '%';
+      prog.style.display = 'block'; prog.querySelector('i').style.width = pct + '%';
+      label.style.display = 'block'; label.textContent = fmtSize(st.progress ? st.progress.received : 0) + ' / ' + fmtSize(st.progress ? st.progress.total : 0);
+      notes.style.display = 'none';
+    } else {
+      prog.style.display = 'none'; label.style.display = 'none';
+      if (info && info.ok && info.hasUpdate) {
+        badge.style.display = '';
+        summary.innerHTML = `<span style="color:var(--ok);">发现新版本 v${info.latest}</span>（当前 v${info.current}） <button class="btn primary" id="btnDownload" style="margin:0 0 0 8px;">下载并安装</button>`;
+        $('#btnDownload').addEventListener('click', () => window.settings.updateDownload());
+        notes.style.display = 'block';
+        notes.innerHTML = '<b>v' + info.latest + ' 发布说明</b>\n' + (info.notes || '（无说明）');
+      } else if (info && info.ok) {
+        badge.style.display = 'none';
+        summary.textContent = '当前已是最新版本 v' + info.current;
+        notes.style.display = 'none';
+      } else if (st.status === 'ready') {
+        summary.innerHTML = `<span style="color:var(--ok);">下载完成，即将自动安装…</span> <button class="btn primary" id="btnInstall" style="margin:0 0 0 8px;">立即安装</button>`;
+        notes.style.display = 'block';
+        notes.innerHTML = '<b>v' + (info ? info.latest : '') + '</b> 已就绪，安装器将静默覆盖安装当前版本。';
+        $('#btnInstall').addEventListener('click', () => window.settings.updateInstall());
+      } else {
+        badge.style.display = 'none';
+        summary.textContent = st.message || '检查失败';
+        notes.style.display = 'none';
+      }
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    const s = await window.settings.get();
+    $('#ver').textContent = 'v' + s.version;
+    $('#autoLaunch').checked = s.autoLaunch;
+    $('#openWith').checked = s.openWith;
+    $('#hotkey').checked = !!s.hotkey;
+    $('#paths').innerHTML =
+      '数据目录：<b>' + s.dshRoot + '</b><br>' +
+      '工作区：<b>' + s.dataDir + '\\workspace</b><br>' +
+      '日志：<b>' + s.logDir + '</b><br>' +
+      '运行时：<b>' + s.runtimeDir + '</b><br>' +
+      '服务地址：<b>' + s.base + '</b> · 引擎 <b>' + s.engine + '</b>';
+    $('#autoLaunch').addEventListener('change', async (e) => { await window.settings.setAutoLaunch(e.target.checked); });
+    $('#openWith').addEventListener('change', async (e) => { await window.settings.setOpenWith(e.target.checked); });
+    $('#hotkey').addEventListener('change', async (e) => { await window.settings.setHotkey(e.target.checked); });
+
+    // IM 渠道
+    renderChannels(await window.settings.getChannels());
+
+    // 更新中心
+    if (s.updateSource) { $('#srcOwner').value = s.updateSource.owner || 'veenyi'; $('#srcRepo').value = s.updateSource.repo || 'dsh-desktop'; }
+    $('#saveSource').addEventListener('click', async () => {
+      const r = await window.settings.updateSource({ owner: $('#srcOwner').value.trim(), repo: $('#srcRepo').value.trim() });
+      toast(r.ok ? '更新源已保存' : (r.message || '保存失败'));
+    });
+    $('#checkUpdate').addEventListener('click', async () => {
+      renderUpdate({ status: 'checking' });
+      const r = await window.settings.checkUpdate();
+      renderUpdate(await window.settings.updateState());
+    });
+    $('#openUpDir').addEventListener('click', () => window.settings.updateOpenDir());
+    window.settings.onUpdateState((st) => renderUpdate(st));
+    renderUpdate(s.updateState);
+    // 初始状态有可下载更新时显示目录按钮
+    if (s.updateState && s.updateState.info && s.updateState.info.hasUpdate) $('#openUpDir').style.display = '';
+  });
+</script>
+</body>
+</html>
