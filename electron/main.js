@@ -83,13 +83,42 @@ function log(msg) {
 function ensureJunction() {
   // loader 从 profile 目录解析插件依赖：data/node_modules -> 运行时 node_modules
   const linkPath = path.join(DATA_DIR, 'node_modules');
-  if (fs.existsSync(linkPath)) return;
+  const target = RUNTIME_DIR + '\\node_modules';
   fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (fs.existsSync(linkPath)) {
+    // 校验桥目标是否仍是当前运行时（跨版本升级后旧桥会失效：
+    // 例如升级后仍指向旧 runtime → 新引擎加载不到 IM 渠道插件 → ERR_MODULE_NOT_FOUND → 服务起不来）
+    let ok = false;
+    try {
+      const real = fs.realpathSync(linkPath);
+      ok = real.toLowerCase() === target.toLowerCase();
+      if (!ok) log(`stale junction target (${real}), rebuilding -> ${target}`);
+    } catch (e) {
+      log('junction unresolvable (' + e.message + '), rebuilding');
+    }
+    if (ok) return;
+    try {
+      fs.rmSync(linkPath, { recursive: true, force: true });
+    } catch (e) {
+      log('stale junction remove failed: ' + e.message);
+      return;
+    }
+  }
   try {
-    fs.symlinkSync(RUNTIME_DIR + '\\node_modules', linkPath, 'junction');
-    log('data/node_modules junction created');
+    fs.symlinkSync(target, linkPath, 'junction');
+    log('data/node_modules junction created -> ' + target);
   } catch (e) {
-    log('junction failed (will copy instead): ' + e.message);
+    // 悬空 junction 等残留：existsSync 对悬空链接返回 false，symlinkSync 会报 EEXIST → 删除后重试
+    if (e.code === 'EEXIST') {
+      try {
+        fs.rmSync(linkPath, { recursive: true, force: true });
+        fs.symlinkSync(target, linkPath, 'junction');
+        log('data/node_modules junction recreated -> ' + target);
+        return;
+      } catch (e2) { log('junction recreate failed: ' + e2.message); }
+    } else {
+      log('junction failed (will copy instead): ' + e.message);
+    }
     try {
       fs.cpSync(path.join(RUNTIME_DIR, 'node_modules'), linkPath, { recursive: true });
     } catch (e2) { log('copy fallback failed: ' + e2.message); }
@@ -1234,6 +1263,8 @@ if (!gotLock) {
       app.exit(0);
       return;
     }
+    // 1.5) 修复跨版本升级后可能失效的 data/node_modules junction（升级后旧桥指向旧 runtime 会崩引擎）
+    ensureJunction();
     // 2) 若已有 dsh 实例在跑，直接用；否则拉起
     if (await isServerUp()) {
       log('existing dsh server found on ' + PORT);
