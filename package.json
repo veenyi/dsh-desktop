@@ -1,7 +1,7 @@
 {
   "name": "dsh-desktop",
-  "version": "0.3.1",
-  "description": "DeepSeek Harness Desktop - 内置 dsh 工作台的桌面应用（IM 渠道 / 技能市场 / GitHub 自动更新）",
+  "version": "0.3.2",
+  "description": "DeepSeek Harness Desktop - 内置 dsh 工作台的桌面应用（IM 渠道 / 技能市场 / GitHub 自动更新 / 全格式附件）",
   "main": "electron/main.js",
   "author": "DSH Desktop Contributors",
   "license": "MIT",
