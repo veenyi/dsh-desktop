@@ -1,0 +1,43 @@
+# dsh-desktop patch overlay（桌面版）
+# 本机应用：webserver 仅监听 127.0.0.1（比 NAS 版更安全）
+- id: webserver
+  config:
+    host: 127.0.0.1
+    port: 3080
+
+# IM 渠道插件（单聊 MVP）
+# 凭据通过数据目录 ~/.dsh/.env 注入（设置 → IM 渠道 配置），未配置则禁用
+- insert:
+    - id: channel-dingtalk
+      name: '@deepseek-ai/dsh-channel-dingtalk'
+      config:
+        enabled: !!js (process.env.DINGTALK_APP_KEY ?? '') !== ''
+        appKey: !!js process.env.DINGTALK_APP_KEY ?? ''
+        appSecret: !!js process.env.DINGTALK_APP_SECRET ?? ''
+    - id: channel-feishu
+      name: '@deepseek-ai/dsh-channel-feishu'
+      config:
+        enabled: !!js (process.env.FEISHU_APP_ID ?? '') !== ''
+        appId: !!js process.env.FEISHU_APP_ID ?? ''
+        appSecret: !!js process.env.FEISHU_APP_SECRET ?? ''
+    - id: channel-discord
+      name: '@deepseek-ai/dsh-channel-discord'
+      config:
+        enabled: !!js (process.env.DISCORD_TOKEN ?? '') !== ''
+        token: !!js process.env.DISCORD_TOKEN ?? ''
+    - id: channel-wecom
+      name: '@deepseek-ai/dsh-channel-wecom'
+      config:
+        enabled: !!js (process.env.WECOM_WEBHOOK_KEY ?? '') !== ''
+        webhookKey: !!js process.env.WECOM_WEBHOOK_KEY ?? ''
+        corpId: !!js process.env.WECOM_CORP_ID ?? ''
+        agentId: !!js process.env.WECOM_AGENT_ID ?? ''
+        secret: !!js process.env.WECOM_SECRET ?? ''
+        callbackToken: !!js process.env.WECOM_CALLBACK_TOKEN ?? ''
+        encodingAESKey: !!js process.env.WECOM_CALLBACK_AES_KEY ?? ''
+    - id: channel-qq
+      name: '@deepseek-ai/dsh-channel-qq'
+      config:
+        enabled: !!js (process.env.QQ_APP_ID ?? '') !== ''
+        appId: !!js process.env.QQ_APP_ID ?? ''
+        botToken: !!js process.env.QQ_BOT_TOKEN ?? ''
