@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>DSH 浏览器</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Segoe UI","Microsoft YaHei",sans-serif; height:100vh; display:flex; flex-direction:column; background:#fff; }
+  .bar { display:flex; align-items:center; gap:6px; padding:8px 10px; background:#f5f6f8; border-bottom:1px solid #e5e7eb; }
+  .bar button { border:1px solid #d5d8dd; background:#fff; border-radius:7px; padding:5px 10px; font-size:12px; cursor:pointer; color:#1f2328; }
+  .bar button:hover { background:#eef1f5; }
+  .bar input { flex:1; border:1px solid #d5d8dd; border-radius:7px; padding:6px 10px; font-size:13px; outline:none; }
+  .bar input:focus { border-color:#4D6BFE; }
+  #wv { flex:1; border:none; }
+</style>
+</head>
+<body>
+  <div class="bar">
+    <button id="back" title="后退">←</button>
+    <button id="fwd" title="前进">→</button>
+    <button id="reload" title="刷新">⟳</button>
+    <input id="url" placeholder="输入网址，回车访问">
+    <button id="ext" title="在系统浏览器打开">外部打开</button>
+    <button id="home" title="默认页">🏠</button>
+  </div>
+  <webview id="wv" src="https://www.deepseek.com"></webview>
+<script>
+  const wv = document.getElementById('wv');
+  const urlInput = document.getElementById('url');
+  function go(u) {
+    if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+    wv.loadURL(u);
+    urlInput.value = u;
+  }
+  wv.addEventListener('did-navigate', (e) => { urlInput.value = e.url; });
+  wv.addEventListener('did-navigate-in-page', (e) => { urlInput.value = e.url; });
+  wv.addEventListener('page-title-updated', (e) => { document.title = e.title + ' — DSH 浏览器'; });
+  document.getElementById('back').addEventListener('click', () => wv.canGoBack() && wv.goBack());
+  document.getElementById('fwd').addEventListener('click', () => wv.canGoForward() && wv.goForward());
+  document.getElementById('reload').addEventListener('click', () => wv.reload());
+  document.getElementById('home').addEventListener('click', () => go('https://www.deepseek.com'));
+  urlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(urlInput.value); });
+  document.getElementById('ext').addEventListener('click', () => {
+    if (typeof window.__dshShell !== 'undefined') window.__dshShell.openExternal(urlInput.value || wv.getURL());
+  });
+  // 新窗口在外部打开
+  wv.addEventListener('new-window', (e) => {
+    e.preventDefault();
+    if (typeof window.__dshShell !== 'undefined') window.__dshShell.openExternal(e.url);
+  });
+</script>
+</body>
+</html>
