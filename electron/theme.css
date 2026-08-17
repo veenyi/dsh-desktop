@@ -1,0 +1,92 @@
+/* dsh-desktop UI 现代化主题（注入 dsh web UI）
+ * 品牌色：DeepSeek 官方蓝 #4D6BFE；字体：微软雅黑；细节：圆角/滚动条/间距统一
+ * 亮/暗双主题：品牌变量在 light/dark 下都生效 */
+:root,
+[data-theme='light'],
+[data-theme='dark'] {
+  --dsw-alias-brand-primary: #4D6BFE;
+  --dsw-alias-brand-primary-hover: #3E5AE6;
+  --dsw-alias-brand-primary-active: #334DC9;
+  --dsw-alias-button-primary-fill: #4D6BFE;
+  --dsw-alias-button-primary-hover: #3E5AE6;
+  --dsw-alias-button-primary-active: #334DC9;
+  --dsw-alias-interactive-bg-primary: #4D6BFE;
+  --dsw-alias-state-business-primary: #4D6BFE;
+  --dsw-alias-brand-primary-weak: rgba(77, 107, 254, 0.14);
+  --dsw-alias-brand-primary-weak-hover: rgba(77, 107, 254, 0.22);
+}
+
+[data-theme='dark'] {
+  --dsw-alias-brand-primary: #6C86FF;
+  --dsw-alias-brand-primary-hover: #5874F8;
+  --dsw-alias-brand-primary-active: #4762E0;
+  --dsw-alias-button-primary-fill: #6C86FF;
+  --dsw-alias-button-primary-hover: #5874F8;
+  --dsw-alias-button-primary-active: #4762E0;
+  --dsw-alias-interactive-bg-primary: #6C86FF;
+  --dsw-alias-state-business-primary: #6C86FF;
+  --dsw-alias-brand-primary-weak: rgba(108, 134, 255, 0.18);
+  --dsw-alias-brand-primary-weak-hover: rgba(108, 134, 255, 0.28);
+}
+
+/* 字体统一 */
+body,
+button,
+input,
+textarea,
+select {
+  font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif !important;
+}
+
+/* 品牌蓝按钮 hover 过渡 */
+button {
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
+}
+
+/* 侧栏微调：更紧凑的导航项 */
+[class*='rail'] {
+  font-size: 13px;
+}
+
+/* 滚动条美化（WebKit，跟随主题） */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(120, 130, 150, 0.35);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 130, 150, 0.55);
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 卡片圆角统一 */
+[class*='card'],
+[class*='panel'],
+[class*='modal'] {
+  border-radius: 10px !important;
+}
+
+/* 输入框圆角 */
+textarea,
+input[type='text'],
+[contenteditable] {
+  border-radius: 10px !important;
+}
+
+/* 链接与选中态品牌化 */
+a {
+  color: var(--dsw-alias-brand-primary, #4D6BFE) !important;
+}
+::selection {
+  background: var(--dsw-alias-brand-primary-weak, rgba(77, 107, 254, 0.3));
+}
+
+/* 当前导航项柔和高亮（深色主题下更明显） */
+[class*='rail'] [class*='active'] {
+  background: var(--dsw-alias-brand-primary-weak, rgba(77, 107, 254, 0.14)) !important;
+}

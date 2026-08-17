@@ -1,0 +1,59 @@
+{
+  "name": "dsh-desktop",
+  "version": "0.1.36",
+  "description": "DeepSeek Harness Desktop - 内置 dsh 工作台的桌面应用（IM 渠道 / 技能市场 / GitHub 自动更新 / 全格式附件 / 上下文自动压缩）",
+  "main": "electron/main.js",
+  "author": "DSH Desktop Contributors",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build:runtime": "node scripts/build-runtime.cjs",
+    "dist": "node scripts/build-runtime.cjs --package && electron-builder --win nsis",
+    "dist:dir": "node scripts/build-runtime.cjs --package && electron-builder --win dir",
+    "publish": "node scripts/publish.cjs"
+  },
+  "devDependencies": {
+    "electron": "^37.10.3",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "cn.dsh.desktop",
+    "productName": "DSH Desktop",
+    "artifactName": "dsh-desktop-${version}-setup.${ext}",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "package.json",
+      "build/icon.ico"
+    ],
+    "extraResources": [
+      {
+        "from": "dsh-runtime",
+        "to": "dsh-runtime"
+      },
+      {
+        "from": "whisper",
+        "to": "whisper"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "include": "build/installer.nsh",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DSH Desktop",
+      "uninstallDisplayName": "DSH Desktop",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>DSH Desktop 设置</title>
+<style>
+  :root { --accent:#4D6BFE; --accent-soft:#eef1ff; --bg:#f5f6f8; --card:#fff; --border:#e5e7eb; --text:#1f2328; --sub:#656d76; --ok:#2da44e; --warn:#bf8700; --err:#d1242f; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Segoe UI","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; }
+  header { display:flex; align-items:center; gap:10px; padding:14px 20px; background:#fff; border-bottom:1px solid var(--border); }
+  header h1 { font-size:16px; font-weight:600; flex:1; }
+  .ver { font-size:12px; color:var(--sub); }
+  main { flex:1; overflow-y:auto; padding:18px 22px; }
+  .sec { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:14px; }
+  .sec h3 { font-size:14px; font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+  .sec .desc { font-size:12px; color:var(--sub); margin-bottom:12px; }
+  .row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-top:1px solid #f0f1f3; }
+  .row:first-of-type { border-top:none; }
+  .row .lab { font-size:13px; }
+  .row .lab small { display:block; color:var(--sub); font-size:11px; }
+  .switch { position:relative; width:42px; height:24px; flex-shrink:0; }
+  .switch input { opacity:0; width:0; height:0; }
+  .slider { position:absolute; inset:0; background:#d0d3d9; border-radius:999px; transition:.2s; cursor:pointer; }
+  .slider:before { content:""; position:absolute; width:18px; height:18px; border-radius:50%; background:#fff; top:3px; left:3px; transition:.2s; }
+  .switch input:checked + .slider { background:var(--accent); }
+  .switch input:checked + .slider:before { transform:translateX(18px); }
+  .kv { font-size:12px; color:var(--sub); line-height:1.9; }
+  .kv b { color:var(--text); font-weight:600; }
+  .btn { display:inline-block; border:1px solid var(--accent); color:var(--accent); background:transparent; border-radius:8px; padding:6px 14px; font-size:12px; cursor:pointer; margin-top:8px; }
+  .btn:hover { background:var(--accent-soft); }
+  .btn.primary { background:var(--accent); color:#fff; border:none; }
+  .btn.primary:hover { background:#3E5AE6; }
+  .btn.danger { border-color:var(--err); color:var(--err); }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  /* 渠道卡片 */
+  .ch { border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+  .ch .head { display:flex; align-items:center; gap:8px; }
+  .ch .head .nm { font-size:13px; font-weight:600; flex:1; }
+  .ch .head .st { font-size:11px; padding:2px 8px; border-radius:999px; }
+  .ch .head .st.on { background:#e6f4ea; color:var(--ok); }
+  .ch .head .st.part { background:#fef7e0; color:var(--warn); }
+  .ch .head .st.off { background:#f0f1f3; color:var(--sub); }
+  .ch .head .chev { border:none; background:transparent; color:var(--sub); cursor:pointer; font-size:13px; padding:2px 6px; }
+  .ch .body { display:none; margin-top:10px; }
+  .ch.open .body { display:block; }
+  .ch .desc { font-size:11px; color:var(--sub); margin-top:2px; }
+  .ch .fld { display:flex; align-items:center; gap:8px; margin-top:8px; }
+  .ch .fld label { font-size:12px; color:var(--sub); width:150px; flex-shrink:0; }
+  .ch .fld input { flex:1; border:1px solid var(--border); border-radius:7px; padding:6px 10px; font-size:12px; }
+  .ch .fld .set { font-size:11px; color:var(--ok); width:70px; text-align:right; }
+  /* 更新中心 */
+  .up-row { display:flex; align-items:center; gap:8px; margin-top:8px; }
+  .up-row label { font-size:12px; color:var(--sub); }
+  .up-row input { flex:1; border:1px solid var(--border); border-radius:7px; padding:6px 10px; font-size:12px; max-width:200px; }
+  .notes { background:#f7f8fa; border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.7; margin-top:10px; white-space:pre-wrap; max-height:220px; overflow-y:auto; color:var(--sub); }
+  .notes b { color:var(--text); }
+  .progress { height:6px; background:#eaeef2; border-radius:3px; overflow:hidden; margin-top:10px; display:none; }
+  .progress i { display:block; height:100%; width:0%; background:var(--accent); transition:width .2s; }
+  .prog-label { font-size:11px; color:var(--sub); margin-top:6px; display:none; }
+  .badge-up { display:inline-block; background:var(--accent); color:#fff; font-size:11px; padding:2px 10px; border-radius:999px; }
+  /* 扫码配置 */
+  .ch .note { font-size:11px; color:var(--warn); background:#fdf6e3; border:1px solid #f3e3b8; border-radius:6px; padding:6px 10px; margin-top:8px; line-height:1.6; }
+  .ch .qrbtn { display:inline-block; background:var(--accent); color:#fff; border:none; border-radius:8px; padding:6px 14px; font-size:12px; cursor:pointer; margin-top:8px; margin-right:8px; }
+  .ch .qrbtn:hover { background:#3E5AE6; }
+  .modal-mask { position:fixed; inset:0; background:rgba(20,24,35,.45); display:none; align-items:center; justify-content:center; z-index:999; }
+  .modal-mask.show { display:flex; }
+  .modal { background:#fff; border-radius:14px; width:360px; max-width:92vw; padding:18px 20px; box-shadow:0 10px 40px rgba(0,0,0,.18); }
+  .modal h3 { font-size:15px; font-weight:600; margin-bottom:4px; }
+  .modal .hint { font-size:12px; color:var(--sub); line-height:1.6; margin-bottom:12px; }
+  .modal .qr-zone { display:flex; justify-content:center; padding:8px 0 4px; }
+  .modal .qr-zone canvas, .modal .qr-zone img { width:220px; height:220px; border:1px solid var(--border); border-radius:10px; background:#fff; }
+  .modal .qr-status { text-align:center; font-size:12px; color:var(--sub); min-height:18px; margin:6px 0 10px; }
+  .modal .qr-status .ok { color:var(--ok); }
+  .modal .qr-status .err { color:var(--err); }
+  .modal .btn-row { display:flex; gap:8px; justify-content:flex-end; }
+  .modal .btn-row .btn { margin-top:0; }
+  .modal .extra { margin-top:10px; }
+  .modal .extra label { font-size:12px; color:var(--sub); display:block; margin-bottom:4px; }
+  .modal .extra input { width:100%; border:1px solid var(--border); border-radius:7px; padding:6px 10px; font-size:12px; }
+  footer { padding:12px 20px; background:#fff; border-top:1px solid var(--border); font-size:12px; color:var(--sub); }
+</style>
+<script src="qrcode.min.js"></script>
+</head>
+<body>
+<header>
+  <h1>DSH Desktop 设置</h1>
+  <span class="ver" id="ver">v-</span>
+</header>
+<main>
+  <div class="sec">
+    <h3>通用</h3>
+    <div class="desc">启动与集成行为</div>
+    <div class="row">
+      <span class="lab">开机自动启动<small>登录 Windows 后自动运行 DSH Desktop</small></span>
+      <label class="switch"><input type="checkbox" id="autoLaunch"><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <span class="lab">右键"用 DSH Desktop 打开"<small>资源管理器文件右键菜单增加入口</small></span>
+      <label class="switch"><input type="checkbox" id="openWith"><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <span class="lab">全局快捷键 Ctrl+Alt+D<small>任意窗口下显示/隐藏 DSH Desktop</small></span>
+      <label class="switch"><input type="checkbox" id="hotkey"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h3>IM 渠道</h3>
+    <div class="desc">配置机器人凭据后重启应用生效。支持扫码的渠道一键扫码完成配置；凭据只保存在本机 ~/.dsh/.env，不会上传。</div>
+    <div id="channels"><div style="font-size:12px;color:var(--sub);">加载中…</div></div>
+  </div>
+
+  <div class="sec">
+    <h3>更新中心 <span class="badge-up" id="upBadge" style="display:none;"></span></h3>
+    <div class="desc">从 GitHub Releases 检查并安装新版本（默认源 veenyi/dsh-desktop，可修改）</div>
+    <div class="up-row">
+      <label>更新源</label>
+      <input id="srcOwner" placeholder="owner" value="veenyi">
+      <span style="color:var(--sub);">/</span>
+      <input id="srcRepo" placeholder="repo" value="dsh-desktop">
+      <button class="btn" id="saveSource">保存更新源</button>
+    </div>
+    <div class="up-row">
+      <button class="btn primary" id="checkUpdate">检查更新</button>
+      <button class="btn" id="openUpDir" style="display:none;">打开更新目录</button>
+      <span id="upSummary" style="font-size:12px;color:var(--sub);"></span>
+    </div>
+    <div class="progress" id="upProgress"><i></i></div>
+    <div class="prog-label" id="progLabel"></div>
+    <div class="notes" id="upNotes" style="display:none;"></div>
+  </div>
+
+  <div class="sec">
+    <h3>路径信息</h3>
+    <div class="desc">数据全部在用户主目录下（类 ~/.workbuddy 约定）</div>
+    <div class="kv" id="paths"></div>
+  </div>
+</main>
+<div class="modal-mask" id="qrMask">
+  <div class="modal">
+    <h3 id="qrTitle">扫码配置</h3>
+    <div class="hint" id="qrHint"></div>
+    <div class="qr-zone" id="qrZone"></div>
+    <div class="qr-status" id="qrStatus">准备中…</div>
+    <div class="extra" id="qrExtra" style="display:none;"></div>
+    <div class="btn-row">
+      <button class="btn" id="qrClose">关闭</button>
+      <button class="btn" id="qrRefresh" style="display:none;">刷新二维码</button>
+    </div>
+  </div>
+</div>
+<footer>DSH Desktop · 本地优先 · 数据只留在你的电脑 · 凭据脱敏存储</footer>
+<script>
+  const $ = (s) => document.querySelector(s);
+  let updateState = null;
+  window.onerror = (msg, src, line, col, err) => { console.error('settings-error', msg, src, line, col, err && err.stack); };
+
+  function toast(msg) {
+    // 轻量提示：设置窗口内直接弹 alert 语义更清晰，这里用状态行代替
+    alert(msg);
+  }
+
+  function fmtSize(n) {
+    if (!n) return '';
+    if (n > 1048576) return (n / 1048576).toFixed(1) + ' MB';
+    if (n > 1024) return (n / 1024).toFixed(0) + ' KB';
+    return n + ' B';
+  }
+
+  function renderChannels(chs) {
+    const box = $('#channels');
+    box.innerHTML = '';
+    if (!chs || !chs.length) { box.innerHTML = '<div style="font-size:12px;color:var(--sub);">无渠道</div>'; return; }
+    for (const ch of chs) {
+      const card = document.createElement('div');
+      card.className = 'ch' + (ch.configured ? ' open' : '');
+      const stCls = ch.enabled ? 'on' : (ch.configured ? 'part' : 'off');
+      const stTxt = ch.enabled ? '已启用' : (ch.configured ? '部分配置' : '未配置');
+      const flds = ch.fields.map((f) => `
+        <div class="fld">
+          <label title="${f.env}">${f.label}</label>
+          <input type="${f.secret ? 'password' : 'text'}" id="${ch.id}-${f.env}" placeholder="${f.set ? '（已配置，留空保持不变）' : '未配置'}" autocomplete="off">
+          <span class="set">${f.set ? '✓' : ''}</span>
+        </div>`).join('');
+      const noteHtml = ch.note ? `<div class="note">⚠️ ${ch.note}</div>` : '';
+      const qrBtnHtml = (ch.qrLogin && ch.qr) ? `<button class="qrbtn" data-qr="${ch.id}">📷 ${ch.qr.btn || '扫码配置'}</button>` : '';
+      card.innerHTML = `
+        <div class="head">
+          <span class="nm">${ch.icon ? ch.icon + ' ' : ''}${ch.name}</span>
+          <span class="st ${stCls}">${stTxt}</span>
+          <button class="chev" title="展开/收起">▾</button>
+        </div>
+        <div class="desc">${ch.desc}</div>
+        ${noteHtml}
+        <div class="body">
+          ${flds}
+          ${qrBtnHtml}
+          <button class="btn primary" data-act="save">保存凭据</button>
+          <button class="btn danger" data-act="clear" ${ch.configured ? '' : 'disabled'}>清除凭据</button>
+        </div>`;
+      card.querySelector('.chev').addEventListener('click', () => card.classList.toggle('open'));
+      card.querySelector('[data-act="save"]').addEventListener('click', async () => {
+        const values = {};
+        ch.fields.forEach((f) => {
+          const el = document.getElementById(ch.id + '-' + f.env);
+          if (el && el.value.trim()) values[f.env] = el.value.trim();
+        });
+        const r = await window.settings.saveChannel(ch.id, values);
+        toast(r.message);
+        if (r.ok) renderChannels(await window.settings.getChannels());
+      });
+      card.querySelector('[data-act="clear"]').addEventListener('click', async () => {
+        if (!confirm('确定清除「' + ch.name + '」的凭据？')) return;
+        const r = await window.settings.clearChannel(ch.id);
+        toast(r.message);
+        if (r.ok) renderChannels(await window.settings.getChannels());
+      });
+      const qrEl = card.querySelector('[data-qr]');
+      if (qrEl) qrEl.addEventListener('click', () => openQrModal(ch));
+      box.appendChild(card);
+    }
+  }
+
+  /* ── 扫码配置（微信 iLink / Telegram Nous / 企业微信授权）── */
+  let qrTimer = null;
+  function openQrModal(ch) {
+    clearTimeout(qrTimer);
+    window.__qrChannel = ch;
+    const isManual = ch.qr && ch.qr.kind === 'link';
+    $('#qrTitle').textContent = ch.icon + ' ' + ch.name + ' · ' + (isManual ? '创建机器人' : '扫码配置');
+    $('#qrHint').textContent = (ch.qr && (isManual ? ch.qr.manualHint : ch.qr.hint)) || (ch.note || '');
+    $('#qrStatus').textContent = '正在获取二维码…';
+    $('#qrStatus').className = 'qr-status';
+    $('#qrExtra').style.display = 'none';
+    $('#qrRefresh').style.display = 'none';
+    $('#qrZone').innerHTML = '';
+    $('#qrMask').classList.add('show');
+    startQrFlow(ch);
+  }
+  function setQrStatus(t, cls) {
+    const el = $('#qrStatus');
+    el.textContent = t || '';
+    el.className = 'qr-status' + (cls ? ' ' + cls : '');
+  }
+  function drawQr(text) {
+    const zone = $('#qrZone');
+    zone.innerHTML = '';
+    const canvas = document.createElement('canvas');
+    canvas.width = 220; canvas.height = 220;
+    zone.appendChild(canvas);
+    try {
+      if (window.QRCode) window.QRCode.toCanvas(canvas, text, { width: 220, margin: 2 });
+      else throw new Error('no qrcode lib');
+    } catch (e) {
+      zone.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(text) + '" alt="二维码">';
+    }
+  }
+  async function startQrFlow(ch) {
+    const k = ch.qr.kind;
+    $('#qrRefresh').style.display = 'none';
+    if (k === 'weixin') {
+      const r = await window.settings.channelQr('weixin_qr', {});
+      if (!r || !r.ok) { setQrStatus((r && r.error) || '获取二维码失败', 'err'); return; }
+      drawQr(r.qr_payload);
+      $('#qrRefresh').style.display = '';
+      setQrStatus('请用微信扫描二维码完成登录…');
+      pollWeixin(r.qrcode);
+    } else if (k === 'telegram') {
+      const r = await window.settings.channelQr('telegram_qr', { botName: 'DSH Desktop Agent' });
+      if (!r || !r.ok) { setQrStatus((r && r.error) || '获取二维码失败', 'err'); return; }
+      drawQr(r.qr_payload);
+      $('#qrRefresh').style.display = '';
+      setQrStatus('请用 Telegram 扫描二维码创建机器人…');
+      pollTelegram(r.pairing_id);
+    } else if (k === 'wecom') {
+      const r = await window.settings.channelQr('wecom_qr', {});
+      if (!r || !r.ok) { setQrStatus((r && r.error) || '获取二维码失败', 'err'); return; }
+      drawQr(r.qr_payload);
+      setQrStatus(r.warn || '请用企业微信扫描二维码完成授权');
+    } else if (k === 'qq') {
+      // QQ 官方扫码绑定：
+      // ① 本机生成随机 AES-256-GCM 密钥 → create_bind_task 取 task_id
+      // ② 拼扫码 URL 画成二维码，用户用手机 QQ 扫描确认授权
+      // ③ 轮询 poll_bind_result → 拿到 (app_id, 加密的 client_secret, user_openid)
+      // ④ 本机 AES-GCM 解密 client_secret → 自动填回凭据，重启后生效
+      window.__qrAbort && window.__qrAbort.abort();
+      const abort = new AbortController();
+      window.__qrAbort = abort;
+      setQrStatus('正在生成绑定二维码…');
+      try {
+        const encKey = window.crypto.getRandomValues(new Uint8Array(32));
+        const keyB64 = btoa(String.fromCharCode.apply(null, encKey));
+        const r = await window.settings.channelQr('qq_qr_create', { key: keyB64 });
+        if (abort.signal.aborted) return;
+        if (!r || !r.ok || !r.task_id) { setQrStatus((r && r.error) || '创建绑定任务失败', 'err'); return; }
+        const qrPayload = r.qr_payload;
+        drawQr(qrPayload);
+        $('#qrRefresh').style.display = '';
+        setQrStatus('📱 用手机 QQ 扫描上方二维码完成绑定…');
+        let polls = 0;
+        const maxPolls = 150;
+        while (polls++ < maxPolls) {
+          if (abort.signal.aborted) return;
+          await new Promise((res) => setTimeout(res, 2500));
+          if (abort.signal.aborted) return;
+          try {
+            const pr = await window.settings.channelQr('qq_qr_poll', { task_id: r.task_id });
+            if (abort.signal.aborted) return;
+            if (!pr || !pr.ok) continue;
+            const st = pr.status;
+            if (st === 'pending' || st === 'wait') { setQrStatus('等待手机 QQ 扫码确认…'); continue; }
+            if (st === 'expired') { setQrStatus('二维码已过期，点击「刷新二维码」重新生成', 'err'); $('#qrRefresh').style.display = ''; return; }
+            if (st === 'completed') {
+              try {
+                const secret = await window.settings.decryptQqSecret(pr.encrypt_secret, keyB64);
+                setQrStatus('✅ 绑定成功！已自动保存凭据，重启应用后生效', 'ok');
+                $('#qrRefresh').style.display = 'none';
+                await window.settings.saveChannel(ch.id, { QQBOT_APPID: pr.app_id, QQBOT_SECRET: secret });
+                try { renderChannels(await window.settings.getChannels()); } catch(e) { $('#channels').innerHTML = '<div style="color:red">渲染失败: ' + (e && e.message) + '</div>'; }
+              } catch (e) { setQrStatus('绑定成功但解密凭据失败：' + (e && e.message), 'err'); }
+              return;
+            }
+          } catch (e) { if (!abort.signal.aborted) setQrStatus('轮询失败，稍后重试…'); }
+        }
+        setQrStatus('等待超时，请刷新二维码重试', 'err');
+        $('#qrRefresh').style.display = '';
+      } catch (e) {
+        if (!abort.signal.aborted && !(String(e && e.code) === 'ABORT_ERR' || String(e && e.name) === 'AbortError')) {
+          setQrStatus((e && e.message) || '生成二维码失败', 'err');
+        }
+      }
+    } else if (k === 'link') {
+      // 无官方自动创建/配对 API 的渠道：
+      //   不再画一个『扫码打开手机网页』的假二维码（桌面控制台在手机上基本无法操作，
+      //   且它本就不调用任何创建/关联 API）。改为『在桌面浏览器打开官方后台』按钮 + 步骤说明，
+      //   用户在官方后台创建机器人后把凭据填入下方字段。
+      const url = ch.qr.url || '';
+      $('#qrZone').innerHTML = `<div style="text-align:center;padding:18px 0;">` +
+        `<button class="qrbtn open-official" data-url="${url}">🔗 在桌面浏览器打开官方后台创建机器人</button>` +
+        `</div>`;
+      $('#qrZone').querySelector('.open-official').addEventListener('click', () => {
+        window.settings.openExternal(url);
+      });
+      setQrStatus('该渠道无自动创建/配对接口，请到官方开发者后台创建机器人，再把凭据填入下方即可');
+      $('#qrRefresh').style.display = 'none';
+    }
+  }
+  async function pollWeixin(qrcode) {
+    clearTimeout(qrTimer);
+    const r = await window.settings.channelQr('weixin_status', { qrcode });
+    if (!r || !r.ok) { setQrStatus((r && r.error) || '状态查询失败', 'err'); return; }
+    const st = r.status;
+    if (st === 'scaned') { setQrStatus('已扫码，请在微信中确认…'); qrTimer = setTimeout(() => pollWeixin(qrcode), 3000); }
+    else if (st === 'wait') { setQrStatus('等待微信扫码…'); qrTimer = setTimeout(() => pollWeixin(qrcode), 3000); }
+    else if (st === 'expired') { setQrStatus('二维码已过期，点击「刷新二维码」', 'err'); }
+    else if (st === 'confirmed') {
+      setQrStatus('✅ 扫码成功！Token 已自动保存，重启应用后生效', 'ok');
+      $('#qrRefresh').style.display = 'none';
+      renderChannels(await window.settings.getChannels());
+    } else { qrTimer = setTimeout(() => pollWeixin(qrcode), 3000); }
+  }
+  async function pollTelegram(pairingId) {
+    clearTimeout(qrTimer);
+    const r = await window.settings.channelQr('telegram_status', { pairingId });
+    if (!r || !r.ok) { setQrStatus((r && r.error) || '状态查询失败', 'err'); return; }
+    const st = r.status;
+    if (st === 'waiting' || st === 'pending') { setQrStatus('等待 Telegram 扫码…'); qrTimer = setTimeout(() => pollTelegram(pairingId), 2500); }
+    else if (st === 'ready') {
+      setQrStatus('✅ 机器人 ' + (r.bot_username || '') + ' 创建成功！凭据已自动保存，重启应用后生效', 'ok');
+      $('#qrRefresh').style.display = 'none';
+      renderChannels(await window.settings.getChannels());
+    } else if (st === 'expired') { setQrStatus('配对已过期，点击「刷新二维码」', 'err'); }
+    else { qrTimer = setTimeout(() => pollTelegram(pairingId), 2500); }
+  }
+  $('#qrClose').addEventListener('click', () => { clearTimeout(qrTimer); window.__qrAbort && window.__qrAbort.abort(); window.__qrAbort = null; $('#qrMask').classList.remove('show'); });
+  $('#qrRefresh').addEventListener('click', () => {
+    const ch = window.__qrChannel;
+    if (ch) startQrFlow(ch);
+  });
+  $('#qrMask').addEventListener('click', (e) => { if (e.target === $('#qrMask')) { clearTimeout(qrTimer); $('#qrMask').classList.remove('show'); } });
+
+  function renderUpdate(st) {
+    updateState = st;
+    if (!st) return;
+    const info = st.info;
+    const summary = $('#upSummary');
+    const notes = $('#upNotes');
+    const badge = $('#upBadge');
+    const prog = $('#upProgress');
+    const label = $('#progLabel');
+    const pct = st.progress ? Math.round((st.progress.percent || 0) * 100) : 0;
+    if (st.status === 'checking') { summary.textContent = '正在检查更新…'; prog.style.display = 'none'; label.style.display = 'none'; notes.style.display = 'none'; }
+    else if (st.status === 'downloading') {
+      summary.textContent = '正在下载 v' + (info ? info.latest : '') + ' … ' + pct + '%';
+      prog.style.display = 'block'; prog.querySelector('i').style.width = pct + '%';
+      label.style.display = 'block'; label.textContent = fmtSize(st.progress ? st.progress.received : 0) + ' / ' + fmtSize(st.progress ? st.progress.total : 0);
+      notes.style.display = 'none';
+    } else {
+      prog.style.display = 'none'; label.style.display = 'none';
+      if (info && info.ok && info.hasUpdate) {
+        badge.style.display = '';
+        summary.innerHTML = `<span style="color:var(--ok);">发现新版本 v${info.latest}</span>（当前 v${info.current}） <button class="btn primary" id="btnDownload" style="margin:0 0 0 8px;">下载并安装</button>`;
+        $('#btnDownload').addEventListener('click', () => window.settings.updateDownload());
+        notes.style.display = 'block';
+        notes.innerHTML = '<b>v' + info.latest + ' 发布说明</b>\n' + (info.notes || '（无说明）');
+      } else if (info && info.ok) {
+        badge.style.display = 'none';
+        summary.textContent = '当前已是最新版本 v' + info.current;
+        notes.style.display = 'none';
+      } else if (st.status === 'ready') {
+        summary.innerHTML = `<span style="color:var(--ok);">下载完成，即将自动安装…</span> <button class="btn primary" id="btnInstall" style="margin:0 0 0 8px;">立即安装</button>`;
+        notes.style.display = 'block';
+        notes.innerHTML = '<b>v' + (info ? info.latest : '') + '</b> 已就绪，安装器将静默覆盖安装当前版本。';
+        $('#btnInstall').addEventListener('click', () => window.settings.updateInstall());
+      } else {
+        badge.style.display = 'none';
+        summary.textContent = st.message || '检查失败';
+        notes.style.display = 'none';
+      }
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    const s = await window.settings.get();
+    $('#ver').textContent = 'v' + s.version;
+    $('#autoLaunch').checked = s.autoLaunch;
+    $('#openWith').checked = s.openWith;
+    $('#hotkey').checked = !!s.hotkey;
+    $('#paths').innerHTML =
+      '数据目录：<b>' + s.dshRoot + '</b><br>' +
+      '工作区：<b>' + s.dataDir + '\\workspace</b><br>' +
+      '日志：<b>' + s.logDir + '</b><br>' +
+      '运行时：<b>' + s.runtimeDir + '</b><br>' +
+      '服务地址：<b>' + s.base + '</b> · 引擎 <b>' + s.engine + '</b>';
+    $('#autoLaunch').addEventListener('change', async (e) => { await window.settings.setAutoLaunch(e.target.checked); });
+    $('#openWith').addEventListener('change', async (e) => { await window.settings.setOpenWith(e.target.checked); });
+    $('#hotkey').addEventListener('change', async (e) => { await window.settings.setHotkey(e.target.checked); });
+
+    // IM 渠道
+    try { renderChannels(await window.settings.getChannels()); } catch(e) { console.error('renderChannels failed', e); $('#channels').innerHTML = '<div style="color:red">渲染失败: ' + String(e && e.message || e) + '</div>'; }
+
+    // 更新中心
+    if (s.updateSource) { $('#srcOwner').value = s.updateSource.owner || 'veenyi'; $('#srcRepo').value = s.updateSource.repo || 'dsh-desktop'; }
+    $('#saveSource').addEventListener('click', async () => {
+      const r = await window.settings.updateSource({ owner: $('#srcOwner').value.trim(), repo: $('#srcRepo').value.trim() });
+      toast(r.ok ? '更新源已保存' : (r.message || '保存失败'));
+    });
+    $('#checkUpdate').addEventListener('click', async () => {
+      renderUpdate({ status: 'checking' });
+      const r = await window.settings.checkUpdate();
+      renderUpdate(await window.settings.updateState());
+    });
+    $('#openUpDir').addEventListener('click', () => window.settings.updateOpenDir());
+    window.settings.onUpdateState((st) => renderUpdate(st));
+    renderUpdate(s.updateState);
+    // 初始状态有可下载更新时显示目录按钮
+    if (s.updateState && s.updateState.info && s.updateState.info.hasUpdate) $('#openUpDir').style.display = '';
+  });
+</script>
+</body>
+</html>
